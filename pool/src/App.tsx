@@ -1,11 +1,22 @@
-import Canvas from "./components/Canvas/Canvas"
+import Canvas from "./engine/Canvas"
+import styled from "styled-components"
+
+const Container = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+`
 
 
 function App() {
 
 
   return (
+    <Container>
     <Canvas />
+    </Container>
   )
 }
 
