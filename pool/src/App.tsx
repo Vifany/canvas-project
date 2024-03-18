@@ -4,14 +4,21 @@ import CustomMenu from "./components/drop-menu"
 import { useRef, useState } from "react"
 import { useMemo } from "react"
 import Ball from "./engine/render/actors/ball"
+import InstructionCard from "./components/instruction-card"
 
+const OuterContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+`
 
 const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
 `
 
 
@@ -34,12 +41,15 @@ function App() {
     [selectedRef]);
 
   return (
-    <Container>
-      {memoizedCanvas}
-      {menuCoordinates && (
-        <CustomMenu x={menuCoordinates.x} y={menuCoordinates.y} onClose={closeMenu} selectedBall={selectedRef} />
-      )}
-    </Container>
+    <OuterContainer>
+      <Container>
+        {memoizedCanvas}
+        {menuCoordinates && (
+          <CustomMenu x={menuCoordinates.x} y={menuCoordinates.y} onClose={closeMenu} selectedBall={selectedRef} />
+        )}
+      </Container>
+      <InstructionCard/>
+    </OuterContainer>
   )
 }
 
