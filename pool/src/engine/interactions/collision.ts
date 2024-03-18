@@ -121,6 +121,8 @@ const calculateCanvasCollision = (
     ball.setVelocity(ball.getXVelocity(), -ball.getYVelocity() * resCo);
   }
   ball.step();
+
+  //Проверка на выход за границы
   if (ballX < 0 || ballX > canvasWidth) {
     ball.teleport(canvasWidth/2, canvasHeight/2);
   }
