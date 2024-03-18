@@ -46,15 +46,13 @@ const Canvas: React.FC<CanvasProps> = ({
 
 
   const canvasRef = useCanvas((ctx, canvas) => {
-
-    const context = { ctx, canvas };
     if (!ctx) return;
     if (!canvas) return;
     if (!balls) return;
     clearCanvas (ctx, canvas);
-    renderCanvas(context, [balls[0].render, balls[1].render, balls[2].render, bat.render ]);
-    collisions(balls, bat, canvas.width, canvas.height, 0.9);
-    calculateFrictions(balls, 0.0002);
+    renderCanvas(balls, bat);
+    collisions(balls, bat, canvas.width, canvas.height, 0.85);
+    calculateFrictions('r', balls, 0.035);
 
   },
   (ctx, canvas) => {
