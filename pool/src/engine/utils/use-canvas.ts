@@ -18,7 +18,7 @@ const useCanvas = (
   
   const animate = useCallback(() => {
     if (!canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d', { alpha: false });
+    const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
 
 

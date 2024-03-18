@@ -20,6 +20,8 @@ export default class Ball extends Actor {
     getCoords = () => { return this.location; }
 
     setSpeed = (speed: number) => { this.speed = speed; }
+
+    getDirection = () => { return this.direction; }
     setDirection = (direction: number) => { 
         if (Math.abs(direction) > 360) {
             this.direction = direction - 360;
@@ -28,35 +30,35 @@ export default class Ball extends Actor {
 
         this.direction = direction;
     }
+
     getRadius = () => { return this.diameter
     / 2; }
 
     getSpeed = () => { return this.speed; }
-    getDirection = () => { return this.direction; }
-    getWidth = () => { return this.diameter
-    ; }
+
     getXVelocity = () => { 
         return this.speed * Math.cos(this.direction * Math.PI / 180); 
     }
+
     getYVelocity = () => { 
         return this.speed * Math.sin(this.direction * Math.PI / 180); 
     }
+
     setVelocity = (x: number, y: number) => {
         this.speed = Math.sqrt(x * x + y * y);
         this.direction = Math.atan2(y, x) * 180 / Math.PI;
     }
 
     isCollidable = () => { return this.collidable; }
+
     setCollidable = (collidable: boolean) => { this.collidable = collidable; }
+
     getSpriteCoords = () => { 
         return ({
             x: this.coords.x - this.getRadius(),
             y: this.coords.y - this.getRadius()
         }) }
 
-    public surge = (speed: number) => {
-        this.transpose(this.getXVelocity()*speed, this.getYVelocity()*speed);
-    }
 
     private transpose = (dX: number, dY: number) => {
         this.location.x = this.location.x + dX;
@@ -64,52 +66,46 @@ export default class Ball extends Actor {
     }
 
     swapSprite = (image: string) => {
-        this.sprite = new Sprite(this.coords.x, this.coords.y, this.diameter, this.diameter, image);
+        this.sprite = new Sprite(
+            this.coords.x, 
+            this.coords.y, 
+            this.diameter, 
+            this.diameter, 
+            image
+        );
     }
 
     step = () => {
-        this.transpose(this.getXVelocity(), this.getYVelocity());
+        this.transpose(
+            this.getXVelocity(), 
+            this.getYVelocity()
+        );
     }
 
+    teleport = (x: number, y: number) => {
+        this.location = { x, y };
+    }
 
     private bounce = () => {
         if (!this.context) return
         if (this.speed == 0) {
             return;
         }
-        const f_r = 0.0005;
-
-        this.speed = Math.abs(this.speed - (f_r + (this.speed * this.speed/(this.diameter/2)/60))); 
-        this.transpose(this.getXVelocity(), this.getYVelocity());
-
-        if (this.location.x >= this.context.canvas.width - this.diameter/2 
-            || this.location.x <= this.diameter/2) 
-        {
-            this.setDirection(180 - this.direction);
-        }
-        if (this.location.y >= this.context.canvas.height - this.diameter/2 
-            || this.location.y <= this.diameter/2) 
-        {
-            this.setDirection(-this.direction);
-        }
-
-
-        if (this.location.x > this.context.canvas.width 
-        || this.location.x < - this.getRadius()
-        || this.location.y > this.context.canvas.height
-        || this.location.y < - this.getRadius()
-        ) 
-        {
-            this.location = {
-                x: this.context.canvas.width/2, 
-                y: this.context.canvas.height/2
-            };
-        }
-
+        this.step();
     }
 
-    public render = () => {
-        this.coords = { x: this.location.x - this.diameter/2, y: this.location.y - this.diameter/2 };
+    push = (amount: number) => {
+        this.transpose(
+            amount * Math.cos(this.direction * Math.PI / 180), 
+            amount * Math.sin(this.direction * Math.PI / 180)
+        );
+    }
+
+    render = () => {
+        this.coords = { 
+            x: this.location.x - this.diameter/2, 
+            y: this.location.y - this.diameter/2 
+        };
         this.draw();
         this.bounce();
     }

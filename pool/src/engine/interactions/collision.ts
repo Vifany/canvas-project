@@ -1,6 +1,24 @@
 import Ball from "../render/actors/ball";
 import Bat from "../render/actors/bat";
 
+
+export const collisions = (
+    balls: Ball[], 
+    bat: Bat,
+    canvasWidth: number,
+    canvasHeight: number,
+    resCo: number = 1
+) => {
+    if (bat.isExists()){
+        detectBatCollision(balls, bat, resCo);
+    }
+    detectCollision(balls, resCo);
+    const canvasCo = 1-(1-resCo)/2;
+    detectCanvasCollision(balls, canvasCo, canvasWidth, canvasHeight)
+    }
+
+
+
 const calculateBatCollision = (
     ball: Ball,
     bat: Bat,
@@ -11,7 +29,7 @@ const calculateBatCollision = (
 
     const u1X = ball.getXVelocity();
     const u1Y = ball.getYVelocity();
-    const batSpeed = 2;
+    const batSpeed = 1;
     const ballCoords = ball.getCoords();
     const batCoords = bat.getCoords();
     const angleOfAttack = Math.atan2(ballCoords.y - batCoords.y, ballCoords.x - batCoords.x);
@@ -26,7 +44,7 @@ const calculateBatCollision = (
 };
 
 
-export const detectCollision = (balls: Ball[]) => {
+const detectCollision = (balls: Ball[], resCo: number) => {
     balls.forEach((ball, index) => {
         balls.forEach((otherBall, otherIndex) => {
             if (
@@ -35,15 +53,19 @@ export const detectCollision = (balls: Ball[]) => {
                 || !ball.isCollidable()
             )
                 return;
-            const ballCoords:{x:number, y:number} = ball.getCoords();
-            const otherCoords:{x:number, y:number} = otherBall.getCoords();
-            const dx = ballCoords.x - otherCoords.x;
-            const dy = ballCoords.y - otherCoords.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance <= (ball.getRadius() + otherBall.getRadius())){
-                calculateMassBasedCollision(ball, otherBall, 0.8);
-                ball.step();
-                otherBall.step();
+            const calculateDistance = (ball: Ball, otherBall: Ball) => {
+                const ballCoords: { x: number, y: number } = ball.getCoords();
+                const otherCoords: { x: number, y: number } = otherBall.getCoords();
+                const dx = ballCoords.x - otherCoords.x;
+                const dy = ballCoords.y - otherCoords.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance;
+            };
+
+            if (calculateDistance(ball, otherBall) <= (ball.getRadius() + otherBall.getRadius())) {
+                if (calculateDistance(ball, otherBall) < ball.getRadius())
+                    ball.push(otherBall.getRadius());
+                calculateMassBasedCollision(ball, otherBall, resCo);
             }
 
         });
@@ -51,11 +73,9 @@ export const detectCollision = (balls: Ball[]) => {
 };
 
 
-export const detectBatCollision = (balls: Ball[], bat: Bat) => {
-
+const detectBatCollision = (balls: Ball[], bat: Bat, resCo: number) => {
     balls.forEach((ball) => {
-        if (!bat.isExists) return;
-        
+
         const ballCoords:{x:number, y:number} = ball.getCoords();
         const batCoords:{x:number, y:number} = bat.getCoords();
         const dx = ballCoords.x - batCoords.x;
@@ -63,32 +83,50 @@ export const detectBatCollision = (balls: Ball[], bat: Bat) => {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance > (ball.getRadius() + bat.getRadius())) return;
-        calculateBatCollision(ball, bat,);
+        calculateBatCollision(ball, bat, resCo);
+        //Уменьшает частоту пересечения шара с битой - делает ускорение битой менее резким
         ball.step();
 
 
     });
 }
 
+const detectCanvasCollision = (balls: Ball[], resCo:number, width: number, height: number) => {
 
-export const calculateCanvasCollision = (
+    balls.forEach((ball) => {
+        calculateCanvasCollision(ball, width, height, resCo);
+        ball.step();
+    });
+}
+
+
+const calculateCanvasCollision = (
     ball: Ball, 
     canvasWidth: number, 
-    canvasHeight: number
+    canvasHeight: number,
+    resCo: number = 1
 ) => {
     const ballCoords = ball.getCoords();
     const ballRadius = ball.getRadius();
     const ballX = ballCoords.x;
     const ballY = ballCoords.y;
 
-    if (
-        ballX - ballRadius <= 0 
-        || ballX + ballRadius >= canvasWidth
-        || ballY - ballRadius <= 0 
-        || ballY + ballRadius >= canvasHeight
-        ) {
-        ball.setDirection(180 - ball.getDirection());
+    if (ballX - ballRadius <= 0 || ballX + ballRadius >= canvasWidth) {
+        ball.setVelocity(-ball.getXVelocity() * resCo, ball.getYVelocity());
     }
+
+    if (ballY - ballRadius <= 0 || ballY + ballRadius >= canvasHeight) {
+        ball.setVelocity(ball.getXVelocity(), -ball.getYVelocity() * resCo);
+    }
+    ball.step();
+    if (ballX < 0 || ballX > canvasWidth) {
+        ball.teleport(canvasWidth/2, canvasHeight/2);
+    }
+
+    if (ballY< 0 || ballY > canvasHeight) {
+        ball.teleport(canvasWidth/2, canvasHeight/2);
+    }
+    
 };
 
 const calculateMassBasedCollision = (

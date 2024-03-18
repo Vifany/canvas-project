@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 import { renderCanvas } from './render/render';
 import useCanvas from './utils/use-canvas';
 import styled from 'styled-components';
 import { clearCanvas } from './render/render';
 import Ball from './render/actors/ball';
-import { detectCollision, detectBatCollision } from './interactions/collision';
+import {collisions} from './interactions/collision';
 import Bat from './render/actors/bat';
 import { checkPosition } from './utils/canvas-utility';
+import { calculateFrictions } from './interactions/friction';
 
 
 const CanvasContainer = styled.div`
@@ -29,7 +29,7 @@ const FieldBorder = styled.div`
   pointer-events: none;
 `;
 interface CanvasProps {
-  onContextMenu: (e: React.MouseEvent<HTMLCanvasElement>) => void;
+  onContextMenu: (e: MouseEvent) => void;
   ballsR: React.RefObject<Ball[]>;
   selectedBall: React.RefObject<{ball:Ball | null}>;
 }
@@ -53,8 +53,8 @@ const Canvas: React.FC<CanvasProps> = ({
     if (!balls) return;
     clearCanvas (ctx, canvas);
     renderCanvas(context, [balls[0].render, balls[1].render, balls[2].render, bat.render ]);
-    detectCollision(balls);
-    if (bat.isExists()) detectBatCollision(balls, bat);
+    collisions(balls, bat, canvas.width, canvas.height, 0.9);
+    calculateFrictions(balls, 0.0002);
 
   },
   (ctx, canvas) => {
@@ -75,7 +75,6 @@ const Canvas: React.FC<CanvasProps> = ({
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left - bat.getRadius() / 2;
       const y = e.clientY - rect.top - bat.getRadius() / 2;
-      console.log('click')
       if (!selectedBall.current) return;
       selectedBall.current.ball = checkPosition(balls, x, y)
 
@@ -119,7 +118,7 @@ const Canvas: React.FC<CanvasProps> = ({
   }
   );
 
-  const handleContextMenu = (event: React.MouseEvent) => {
+  const handleContextMenu = (event: MouseEvent) => {
     event.preventDefault();
     onContextMenu(event);
   };

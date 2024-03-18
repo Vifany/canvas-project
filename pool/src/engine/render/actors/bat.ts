@@ -1,9 +1,9 @@
 import Actor from "../actor";
 import {Sprite} from "../render-sprite";
-import Bat from '../../../assets/leBat.png';
+import BatPic from '../../../assets/leBat.png';
 
 
-export default class Ball extends Actor {
+export default class Bat extends Actor {
     protected radius: number = 30;
     protected exists: boolean = true;
     protected collidable: boolean = true;
@@ -11,7 +11,7 @@ export default class Ball extends Actor {
 
     constructor(radius:number) {
 
-        const sprite = new Sprite(0, 0, radius*2, radius*2, Bat);
+        const sprite = new Sprite(0, 0, radius*2, radius*2, BatPic);
         super(sprite);
         this.radius = radius;
         this.coords = { x:0, y:0 };

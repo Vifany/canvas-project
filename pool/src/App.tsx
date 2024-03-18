@@ -18,7 +18,7 @@ const Container = styled.div`
 function App() {
   const [menuCoordinates, setMenuCoordinates] = useState<{ x: number; y: number } | null>(null);
 
-  const handleContextMenu = (event: React.MouseEvent) => {
+  const handleContextMenu = (event: MouseEvent) => {
     setMenuCoordinates({ x: event.clientX, y: event.clientY });
   };
 
