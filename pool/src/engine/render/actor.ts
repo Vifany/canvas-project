@@ -25,6 +25,12 @@ export default class Actor {
         }
     }
 
+    clear = () => {
+        if (this.context) {
+            this.sprite.selfDestruct(this.context);
+        }
+    }
+
     private moveTo (nX: number, nY: number) {
         this.sprite.setCoords(nX, nY);
     }

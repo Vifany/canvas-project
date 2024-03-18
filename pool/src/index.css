@@ -1,8 +1,8 @@
 main, body, html {
   margin: 0;
   padding: 0;
-  background-color: #c3ad82;
-  color: #333;
+  background-color: #a1a082;
+  color: black;
   font-family: Bahnschrift, 'DIN Alternate', 'Franklin Gothic Medium', 'Nimbus Sans Narrow', sans-serif-condensed, sans-serif;
   font-weight: normal;
 }

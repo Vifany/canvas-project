@@ -1,46 +1,30 @@
 import Ball from "../render/actors/ball";
 import Bat from "../render/actors/bat";
 
-const calculateBatCollision = (ball: Ball, bat: Bat, distance:number, dx:number, dy:number) => {
-    const relativeVelocityX = -ball.getXVelocity();
-    const relativeVelocityY = -ball.getYVelocity();
-    const normalVectorX = dx / distance;
-    const normalVectorY = dy / distance;
-    const impulse = (2 * (relativeVelocityX * normalVectorX + relativeVelocityY * normalVectorY)) / 2;
+const calculateBatCollision = (
+    ball: Ball,
+    bat: Bat,
+    resCo: number = 1,
+) => {
+    const m1 = Math.PI * Math.pow(ball.getRadius(), 2);
+    const m2 = m1;
+
+    const u1X = ball.getXVelocity();
+    const u1Y = ball.getYVelocity();
+    const batSpeed = 2;
+    const ballCoords = ball.getCoords();
+    const batCoords = bat.getCoords();
+    const angleOfAttack = Math.atan2(ballCoords.y - batCoords.y, ballCoords.x - batCoords.x);
+    const u2X = batSpeed * Math.cos(angleOfAttack);
+    const u2Y = batSpeed * Math.sin(angleOfAttack);
+    
     ball.setVelocity(
-        ball.getXVelocity() + 2 * impulse * normalVectorX,
-        ball.getYVelocity() + 2 * impulse * normalVectorY
+        (m1-m2*resCo)/(m1+m2)*u1X + (1+resCo)*m2/(m1+m2)*u2X,
+        (m1-m2*resCo)/(m1+m2)*u1Y + (1+resCo)*m2/(m1+m2)*u2Y
     );
-    ball.setSpeed(ball.getSpeed()*1.1);
 
 };
 
-
-const calculateCollision = (
-    ball: Ball, 
-    otherBall: Ball,
-    distance:number, 
-    dx:number, 
-    dy:number
-    ) => {
- {
-        const relativeVelocityX = otherBall.getXVelocity() - ball.getXVelocity();
-        const relativeVelocityY = otherBall.getYVelocity() - ball.getYVelocity();
-        const normalVectorX = dx / distance;
-        const normalVectorY = dy / distance;
-        const impulse = (2 * (relativeVelocityX * normalVectorX + relativeVelocityY * normalVectorY)) / 2;
-        ball.setVelocity(
-            ball.getXVelocity() + impulse * normalVectorX,
-            ball.getYVelocity() + impulse * normalVectorY
-        );
-        otherBall.setVelocity(
-            otherBall.getXVelocity() - impulse * normalVectorX,
-            otherBall.getYVelocity() - impulse * normalVectorY
-        );
-        ball.setSpeed(ball.getSpeed()*0.95);
-        otherBall.setSpeed(otherBall.getSpeed()*0.95);
-    }
-};
 
 export const detectCollision = (balls: Ball[]) => {
     balls.forEach((ball, index) => {
@@ -56,13 +40,12 @@ export const detectCollision = (balls: Ball[]) => {
             const dx = ballCoords.x - otherCoords.x;
             const dy = ballCoords.y - otherCoords.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance <= ((ball.getWidth() + otherBall.getWidth()) / 2)){
-                if ((distance)<((ball.getWidth() + otherBall.getWidth()) / 2)){
-                    ball.setSpeed(ball.getSpeed()*1.1);
-                    otherBall.setSpeed(otherBall.getSpeed()*1.1);
-                }
-                calculateCollision(ball, otherBall, distance, dx, dy);
+            if (distance <= (ball.getRadius() + otherBall.getRadius())){
+                calculateMassBasedCollision(ball, otherBall, 0.8);
+                ball.step();
+                otherBall.step();
             }
+
         });
     });
 };
@@ -78,32 +61,55 @@ export const detectBatCollision = (balls: Ball[], bat: Bat) => {
         const dx = ballCoords.x - batCoords.x;
         const dy = ballCoords.y - batCoords.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const nextCoords:{x:number, y:number} = {
-            x: ballCoords.x + ball.getXVelocity(),
-            y: ballCoords.y + ball.getYVelocity()
-        }
-        const ndX = nextCoords.x - batCoords.x;
-        const ndY = nextCoords.y - batCoords.y;
-        const nextDistance = Math.sqrt(ndX * ndX + ndY * ndY);
 
-        if (!(distance < (ball.getWidth() + bat.getRadius()) / 2)) return;
-        if (nextDistance < distance) {
-            calculateBatCollision(ball, bat, distance, dx, dy);
-        }else if (nextDistance >= distance) {
-            ball.setSpeed(ball.getSpeed()*2);
-        }
-        if (ball.getSpeed() <= 1) {
-            const batCenterX = batCoords.x + bat.getRadius() / 2;
-            const batCenterY = batCoords.y + bat.getRadius() / 2;
-            const directionX = ballCoords.x - batCenterX;
-            const directionY = ballCoords.y - batCenterY;
-            const normalizedDirectionX = directionX / distance;
-            const normalizedDirectionY = directionY / distance;
-            ball.setVelocity(
-                0.5*normalizedDirectionX,
-                0.5*normalizedDirectionY
-            );
-        }
+        if (distance > (ball.getRadius() + bat.getRadius())) return;
+        calculateBatCollision(ball, bat,);
+        ball.step();
+
 
     });
 }
+
+
+export const calculateCanvasCollision = (
+    ball: Ball, 
+    canvasWidth: number, 
+    canvasHeight: number
+) => {
+    const ballCoords = ball.getCoords();
+    const ballRadius = ball.getRadius();
+    const ballX = ballCoords.x;
+    const ballY = ballCoords.y;
+
+    if (
+        ballX - ballRadius <= 0 
+        || ballX + ballRadius >= canvasWidth
+        || ballY - ballRadius <= 0 
+        || ballY + ballRadius >= canvasHeight
+        ) {
+        ball.setDirection(180 - ball.getDirection());
+    }
+};
+
+const calculateMassBasedCollision = (
+    ball: Ball,
+    otherBall: Ball,
+    resCo: number = 1
+) => {
+    const m1 = Math.PI * Math.pow(ball.getRadius(), 2);
+    const m2 = Math.PI * Math.pow(otherBall.getRadius(), 2);
+
+    const u1X = ball.getXVelocity();
+    const u1Y = ball.getYVelocity();
+    const u2X = otherBall.getXVelocity();
+    const u2Y = otherBall.getYVelocity();
+
+    ball.setVelocity(
+        (m1-m2*resCo)/(m1+m2)*u1X + (1+resCo)*m2/(m1+m2)*u2X,
+        (m1-m2*resCo)/(m1+m2)*u1Y + (1+resCo)*m2/(m1+m2)*u2Y
+    );
+    otherBall.setVelocity(
+        (m2-m1*resCo)/(m1+m2)*u2X + (1+resCo)*m1/(m1+m2)*u1X,
+        (m2-m1*resCo)/(m1+m2)*u2Y + (1+resCo)*m1/(m1+m2)*u1Y
+    );
+};

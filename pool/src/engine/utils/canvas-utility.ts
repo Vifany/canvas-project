@@ -1,4 +1,21 @@
 import { CanvasContext } from "./types";
+import Ball from "../render/actors/ball";
+
+
+export const checkPosition = (balls: Ball[], xT: number, yT: number): boolean => {
+  for (const ball of balls) {
+    const radius = ball.getRadius();
+    const{x, y} = ball.getCoords();
+    const distance = Math.sqrt((xT - x) ** 2 + (yT - y) ** 2);
+    if (distance <= radius) {
+      return true;
+    }
+  }
+  return false;
+};
+
+
+
 
 export const clearCanvas = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
