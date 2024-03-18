@@ -22,22 +22,22 @@ function App() {
     setMenuCoordinates({ x: event.clientX, y: event.clientY });
   };
 
-  const bRef = useRef<Ball[]>([new Ball(10,10, 30), new Ball(100,33, 50), new Ball(200, 100, 80)])
-  const selectedRef = useRef<Ball | null>(null); 
+  const bRef = useRef<Ball[]>([new Ball(10,10, 50), new Ball(100,33, 70), new Ball(200, 100, 90)])
+  const selectedRef = useRef<{ball:Ball | null}>({ball:null}); 
 
   const closeMenu = () => {
     setMenuCoordinates(null);
   };
 
   const memoizedCanvas = useMemo(
-    () => <Canvas onContextMenu={handleContextMenu} ballsR={bRef}/>, 
-    []);
+    () => <Canvas onContextMenu={handleContextMenu} ballsR={bRef} selectedBall={selectedRef}/>, 
+    [selectedRef]);
 
   return (
     <Container>
       {memoizedCanvas}
       {menuCoordinates && (
-        <CustomMenu x={menuCoordinates.x} y={menuCoordinates.y} onClose={closeMenu} ballsR={bRef} />
+        <CustomMenu x={menuCoordinates.x} y={menuCoordinates.y} onClose={closeMenu} selectedBall={selectedRef} />
       )}
     </Container>
   )

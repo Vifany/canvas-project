@@ -1,6 +1,6 @@
 import Actor from "../actor";
 import {Sprite} from "../render-sprite";
-import Boule from '../../../assets/lesBoules/deep-magenta-boule.webp';
+import BouleRed from '../../../assets/lesBoules/red-boule.png';
 
 export default class Ball extends Actor {
     protected diameter: number = 50;
@@ -11,7 +11,7 @@ export default class Ball extends Actor {
     protected location: { x: number, y: number } = { x: 0, y: 0 };
 
     constructor(x: number, y: number, diameter: number) {
-        const sprite = new Sprite(x, x, diameter, diameter, Boule);
+        const sprite = new Sprite(x, y, diameter, diameter, BouleRed);
         super(sprite);
         this.diameter = diameter;
         this.location = { x:(x+diameter/2), y:(y+diameter/2) };
@@ -48,7 +48,11 @@ export default class Ball extends Actor {
 
     isCollidable = () => { return this.collidable; }
     setCollidable = (collidable: boolean) => { this.collidable = collidable; }
-
+    getSpriteCoords = () => { 
+        return ({
+            x: this.coords.x - this.getRadius(),
+            y: this.coords.y - this.getRadius()
+        }) }
 
     public surge = (speed: number) => {
         this.transpose(this.getXVelocity()*speed, this.getYVelocity()*speed);
@@ -57,6 +61,10 @@ export default class Ball extends Actor {
     private transpose = (dX: number, dY: number) => {
         this.location.x = this.location.x + dX;
         this.location.y = this.location.y + dY;
+    }
+
+    swapSprite = (image: string) => {
+        this.sprite = new Sprite(this.coords.x, this.coords.y, this.diameter, this.diameter, image);
     }
 
     step = () => {

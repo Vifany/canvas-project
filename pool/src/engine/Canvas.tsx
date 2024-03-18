@@ -30,12 +30,14 @@ const FieldBorder = styled.div`
 `;
 interface CanvasProps {
   onContextMenu: (e: React.MouseEvent<HTMLCanvasElement>) => void;
-  ballsR: any
+  ballsR: React.RefObject<Ball[]>;
+  selectedBall: React.RefObject<{ball:Ball | null}>;
 }
 
 const Canvas: React.FC<CanvasProps> = ({ 
   onContextMenu,
-  ballsR
+  ballsR,
+  selectedBall
 }) => {
   const balls = ballsR.current;
   const bat = new Bat(30);
@@ -48,6 +50,7 @@ const Canvas: React.FC<CanvasProps> = ({
     const context = { ctx, canvas };
     if (!ctx) return;
     if (!canvas) return;
+    if (!balls) return;
     clearCanvas (ctx, canvas);
     renderCanvas(context, [balls[0].render, balls[1].render, balls[2].render, bat.render ]);
     detectCollision(balls);
@@ -58,12 +61,14 @@ const Canvas: React.FC<CanvasProps> = ({
     const context = { ctx, canvas };
     if (!ctx) return;
     if (!canvas) return;
+    if (!balls) return;
     balls.forEach(ball => ball.setContext(context));
     bat.setContext(context);
   },
   (canvas, ctx) => {
     if (!ctx) return;
     if (!canvas) return;
+    if (!balls) return;
 
     const handleMouseDown = (e: MouseEvent) => {
 
@@ -71,7 +76,10 @@ const Canvas: React.FC<CanvasProps> = ({
       const x = e.clientX - rect.left - bat.getRadius() / 2;
       const y = e.clientY - rect.top - bat.getRadius() / 2;
       console.log('click')
-      if (checkPosition(balls, x, y)) {
+      if (!selectedBall.current) return;
+      selectedBall.current.ball = checkPosition(balls, x, y)
+
+      if (selectedBall.current.ball !== null) {
         handleContextMenu(e);
         return;
       }
